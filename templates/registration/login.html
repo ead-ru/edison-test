@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Login/Register{% endblock title %}
+
+{% block content %}
+
+<div class="row justify-content-evenly">
+
+  <div class="col-4">
+      {% if form.errors %}<p>Wrong data</p>{% endif %}
+      <h3>Login</h3>
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <label for="username" class="visually-hidden">Email</label>
+        <input type="email" name="username" id="username" class="form-control mb-2" placeholder="Email" required autofocus value="{{ form.username.value|default_if_none:'' }}">
+
+        <label for="password" class="visually-hidden">Password</label>
+        <input type="password" name="password" id="password" class="form-control mb-2" placeholder="Password" required value="{{ form.password.value|default_if_none:'' }}">
+
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Login</button>
+      </form>
+  </div>
+
+  <div class="col-4">
+      {% if reg_form.errors %}<p>Wrong data</p>{% endif %}
+
+      <h3>Register</h3>
+      <form method="POST" action="{% url 'users:register' %}" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <input type="hidden" name="link" value="{{ link }}">
+
+        <label for="reg_email" class="visually-hidden">Email</label>
+        <input type="email" id="reg_email" name="email" class="form-control mb-2 {% if reg_form.is_bound %}is-{% if reg_form.email.errors %}in{% endif %}valid{% endif %}" placeholder="Email" required autofocus value="{{ reg_form.email.value|default_if_none:'' }}">
+        <div class="invalid-feedback">{{ reg_form.email.errors }}</div>
+
+        <label for="reg_password1" class="visually-hidden">Password</label>
+        <input type="password" id="reg_password1" name="password1" class="form-control mb-2 {% if reg_form.is_bound %}is-{% if reg_form.password1.errors %}in{% endif %}valid{% endif %}" placeholder="Password" required>
+        <div class="invalid-feedback">{{ reg_form.password1.errors }}</div>
+
+        <label for="reg_password2" class="visually-hidden">Password again</label>
+        <input type="password" id="reg_password2" name="password2" class="form-control mb-2 {% if reg_form.is_bound %}is-{% if reg_form.password2.errors %}in{% endif %}valid{% endif %}" placeholder="Password" required>
+        <div class="invalid-feedback">{{ reg_form.password2.errors }}</div>
+
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Register</button>
+      </form>
+    </div>
+
+</div>
+
+{% endblock %}

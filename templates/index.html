@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<table width="100%">
+    <tr>
+        <td>
+            <h1>Active users</h1>
+            <table width="100%" id="users"></table>
+        </td>
+        <td>
+            <h1>Invites to play</h1>
+            <table width="100%" id="invites"></table>
+        </td>
+    </tr>
+</table>
+
+{% endblock content %}
+
+{% block js %}
+  {% if user.is_authenticated %}
+    <script>
+        $(document).ready(function() {
+            update_users();
+            update_invites();
+        });
+    </script>
+  {% endif %}
+{% endblock js %}

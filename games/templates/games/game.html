@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Game with {{ enemy.email }}</h1>
+
+{% if game.is_started %}
+    
+    <h3>Choose your move</h3>
+    
+    <table width="100%">
+        <tr>
+            <td><a href="#" onclick="move({{ game.id }}, {{ move.id }}, 'stone')">Stone</a></td>
+            <td><a href="#" onclick="move({{ game.id }}, {{ move.id }}, 'scissors')">Scissors</a></td>
+            <td><a href="#" onclick="move({{ game.id }}, {{ move.id }}, 'paper')">Paper</a></td>
+            <td><a href="#" onclick="move({{ game.id }}, {{ move.id }}, 'lizard')">Lizard</a></td>
+            <td><a href="#" onclick="move({{ game.id }}, {{ move.id }}, 'spok')">Spok</a></td>
+        </tr>
+        <tr>
+            <td colspan="2" id="yours"></td>
+            <td colspan="2" id="enemy"></td>
+            <td id="victor"></td>
+        </tr>
+    </table>
+
+{% else %}
+
+    <h3>Winner is {{ game.winner_title }}</h3>
+
+    <table width="100%">
+        <tr>
+            <th>{{ game.user1.email }}</th>
+            <th>{{ game.user2.email }}</th>
+            <th>Winner</th>
+        </tr>
+        {% for move in moves %}
+            {% if move.figure1 and move.figure2 %}
+	            <tr>
+	                <td>{{ move.figure1 }}</td>
+	                <td>{{ move.figure2 }}</td>
+	                <td>{{ move.winner_title }}</td>
+	            </tr>
+	        {% endif %}
+        {% endfor%}
+    </table>
+
+{% endif %}
+
+{% endblock content %}
