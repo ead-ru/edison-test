@@ -5,8 +5,8 @@ from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from django.db.transaction import atomic
 from games import models
+from games.master import GameMaster
 
 
 @csrf_exempt
@@ -27,13 +27,8 @@ def invite_to_play(request):
     except User.DoesNotExist:
         return _return_error('User not found')
 
-    game = models.Game()
-    game.set_invited(request.user, invited_user)
-    mov = models.Move(game=game)
-
-    with atomic():
-        game.save()
-        mov.save()
+    master = GameMaster()
+    master.create_game(request.user, invited_user)
 
     return _return_success({})
 
@@ -58,41 +53,12 @@ def get_accepted_game(request):
     return _return_success({'game_id': game.id} if game else {})
 
 
-@csrf_exempt
-@require_POST
-@login_required
-def decline_to_play(request, game_id: int):
-    ''' '''
-    game = models.Game.objects.get_game_to_play(game_id, request.user)
-    if game:
-        game.set_declined()
-        game.save()
-    return _return_success({})
-
-
-@csrf_exempt
-@require_POST
-@login_required
-def accept_to_play(request, game_id: int):
-    ''' '''
-    game = models.Game.objects.get_game_to_play(game_id, request.user)
-    if not game:
-        return _return_error('Game not found')
-
-    game.set_started()
-    game.save()
-
-    return _return_success({'game_id': game.id})
-
-
 @require_GET
 @login_required
 def game(request, game_id: int):
     ''' '''
-    game = get_object_or_404(models.Game, id=game_id)
-    if game.is_started() and game.is_enough():
-        game.set_finished()
-        game.save()
+    master = GameMaster()
+    game = master.get_check_game(game_id)
     return render(request, 'games/game.html', context={
         'game': game,
         'enemy': game.user1 if game.user2 == request.user else game.user2,
@@ -104,25 +70,33 @@ def game(request, game_id: int):
 @csrf_exempt
 @require_POST
 @login_required
+def decline_to_play(request, game_id: int):
+    ''' '''
+    master = GameMaster(game_id)
+    master.decline_game(request.user)
+    return _return_success({})
+
+
+@csrf_exempt
+@require_POST
+@login_required
+def accept_to_play(request, game_id: int):
+    ''' '''
+    master = GameMaster(game_id)
+    master.accept_game(request.user)
+    return _return_success({'game_id': game_id})
+
+
+@csrf_exempt
+@require_POST
+@login_required
 def move(request, game_id: int, move_id: int):
     ''' '''
-    game = models.Game.objects.get_started_game(game_id, request.user)
-    if not game:
-        return _return_error('Game not found')
-
-    cur_move = models.Move.objects.one_for_game(game, move_id)
-    if not cur_move:
-        return _return_error('Move not found')
-
+    master = GameMaster(game_id)
     chosen = request.POST.get('chosen', None)
-    if not models.Move.figure_valid(chosen):
-        return _return_error('This figure can not be found')
-
-    cur_move.chose_figure(request.user, chosen)
-    cur_move.save()
-
+    master.make_move(request.user, move_id, chosen)
     return _return_success({
-        'game_id': game.id, 'move_id': cur_move.id, 'chosen': chosen
+        'game_id': game_id, 'move_id': move_id, 'chosen': chosen
     })
 
 
@@ -142,7 +116,7 @@ def check(request, game_id: int, move_id: int):
     if cur_move.is_finished():
         ret['enemy_move'] = cur_move.another_user_choice(request.user)
         # @todo
-        ret['result'] = 0 if cur_move.winner is None else 1 if cur_move.winner == request.user else -1
+        ret['result'] = 0 if cur_move.winner is None else (1 if cur_move.winner == request.user else -1)
     return _return_success(ret)
 
 

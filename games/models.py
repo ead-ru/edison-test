@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 
 class GameManager(models.Manager):
@@ -12,10 +13,6 @@ class GameManager(models.Manager):
     def get_accepted_game(self, user):
         ''' '''
         return self.filter(user1=user, status=Game.STATUS_STARTED).first()
-
-    def get_game_to_play(self, game_id: int, user):
-        ''' '''
-        return self.filter(id=game_id, user2=user).first()
 
     def get_started_game(self, game_id: int, user):
         ''' '''
@@ -146,10 +143,9 @@ class Move(models.Model):
 
     objects = MoveManager()
 
-    @classmethod
-    def figure_valid(cls, figure) -> bool:
+    def figure_valid(self, figure) -> bool:
         ''' @todo '''
-        for fig in cls.FIGURES:
+        for fig in self.FIGURES:
             if fig[0] == figure:
                 return True
         return False
@@ -160,10 +156,14 @@ class Move(models.Model):
 
     def chose_figure(self, user, figure: str):
         ''' '''
+        if not self.figure_valid(figure):
+            raise ValidationError('Wrong figure')
         if user == self.game.user1:
             self.figure1 = figure
-        else:
+        elif user == self.game.user2:
             self.figure2 = figure
+        else:
+            raise ValidationError('Wrong user')
         if self.is_finished():
             if self.figure1 == self.figure2:
                 self.winner = None
