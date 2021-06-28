@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 class GameManager(models.Manager):
     ''' '''
 
-    def get_ready_games(self, user):
+    def get_invited_games(self, user):
         ''' '''
         return self.filter(user2=user, status=Game.STATUS_INVITED)
 

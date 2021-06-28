@@ -1,6 +1,6 @@
 from typing import Dict
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
@@ -35,12 +35,12 @@ def invite_to_play(request):
 
 @require_GET
 @login_required
-def get_ready_games(request):
+def get_invited_games(request):
     ''' '''
     return _return_success(
         {'games': [
             {'id': game.id, 'user': game.user1.email}
-            for game in models.Game.objects.get_ready_games(request.user)
+            for game in models.Game.objects.get_invited_games(request.user)
         ]}
     )
 

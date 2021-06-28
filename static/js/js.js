@@ -45,7 +45,7 @@ function redraw_invites(data) {
     setTimeout(update_invites, 5000);
 }
 function update_invites() {
-    do_request('GET', '/games/ready', null, redraw_invites);
+    do_request('GET', '/games/invited', null, redraw_invites);
 }
 function check_accepted() {
     do_request('GET', '/games/accepted', null, start_game);
